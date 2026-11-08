@@ -21,11 +21,14 @@ Pubblicazione su GitHub Pages: carica il contenuto dello zip nella radice del re
 - Sorprese: percentili di upside, utilità, bassa FVM, vp; esclusi indisponibili, vp < 0,6, confidenza < 0,5 e top 10% di utilità del ruolo.
 Tutti i coefficienti sono in `COEF` (`fantasuite-fusion-engine-30.js`) e nel JSON dati.
 
+## Interfaccia e dettaglio giocatore
+Ogni riga di listone, migliori, sorprese e formazione è cliccabile: il dettaglio mostra la scomposizione dell'indice di schierabilità (componenti × prob. di voto + sostituto + adeguamento strategia = indice) e del fantavoto atteso. Il listone si ordina per **fattore sorpresa** = fantavoto atteso − fantamedia abituale (n/d se manca la fantamedia, 17 giocatori), per surprise score del motore, indice, fantavoto, floor, ceiling, prob. di voto o nome.
+
 ## Uso
 Fantacalci → crea; Rose → squadre, ricerca per nome/ID, import CSV (ID o `nome,club`), export; Formazione → strategia e calcolo; Aggiornamenti → import JSON (`players[]` con `id`, `role`, `name`), backup/ripristino. Stato in localStorage (`fs-fusion30-v1`, schema 1).
 
 ## Test
-`node fantasuite-fusion-engine-30.test.js` → 30 test superati (502 ID, assenza NaN, indisponibili, no doppia penalità, qualità dato, contributi, aggiornamenti, multi-fanta, ottimizzatore, 3 vs 4 difensori, panchina, sorprese).
+`node fantasuite-fusion-engine-30.test.js` → 32 test superati (502 ID, assenza NaN, indisponibili, no doppia penalità, qualità dato, contributi, aggiornamenti, multi-fanta, ottimizzatore, 3 vs 4 difensori, panchina, sorprese).
 
 ## Limiti noti
 Matchup, xG per ruolo tattico, clean sheet, cartellini, forma a 5 partite, impegni europei e turnover non hanno dati strutturati: restano `null`/neutri e segnalati. Non implementati: Mantra (solo predisposto in `mode`), IndexedDB (usa localStorage), Web Worker, confronto grafico a colonne dedicato, sezioni Dashboard/Fonti/Squadre separate, ricalcolo automatico da fonti remote. Rigoristi non abbinati per omonimia (Martinez, Locatelli, Geubbels, Touré, Busio) o assenza (Pessina). UI non verificata in un browser grafico.

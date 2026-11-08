@@ -20,6 +20,8 @@ t('portiere contro attacco forte: matchup neutro segnalato',()=>assert(M(P({role
 t('dati incompleti: confidenza più bassa, stesso valore atteso',()=>{const a=M(P({xg90:null,xa90:null,data_quality:null})),b=M(P());assert(a.confidence<b.confidence);assert(a.flags.length>b.flags.length)});
 t('qualità dato non alza il valore',()=>{const a=M(P({data_quality:.2})),b=M(P({data_quality:.95}));assert.strictEqual(a.efv,b.efv);assert.strictEqual(a.utility,b.utility);assert(a.floor<b.floor)});
 t('somma contributi = fantavoto',()=>ds.players.filter(p=>p.status!=='unavailable').forEach(p=>{const m=M(p);assert(E.explain(m).sumOk,p.id)}));
+t('scomposizione indice = indice (3 strategie)',()=>ds.players.filter(p=>p.status!=='unavailable').forEach(p=>['prudent','balanced','aggressive'].forEach(s=>{const m=M(p,{strategy:s});assert(Math.abs(m.indexSum-m.score)<1e-9,p.id)})));
+t('fattore sorpresa = fantavoto atteso − fantamedia',()=>{const m=M(P({observed_fantasy_average:6}));assert(Math.abs(m.surpriseDelta-(m.efv-6))<1e-9);assert.strictEqual(M(P({observed_fantasy_average:null})).surpriseDelta,null)});
 t('nessun NaN nelle metriche',()=>ds.players.forEach(p=>{const m=M(p);['score','utility','efv','floor','ceiling'].forEach(k=>assert(Number.isFinite(m[k]),p.id+k))}));
 t('ID mancante rifiutato in aggiornamento',()=>assert(E.validateUpdate({players:[{name:'X',role:'P'}]}).length>0));
 t('aggiornamento non cancella rose',()=>{const L=E.createLeague('A');const tm=E.addTeam(L,'S');E.assign(L,tm.id,0,ds);const u=E.applyUpdate(ds,{players:[Object.assign({},ds.players[0],{expected_fantasy_vote:9})]});assert(u.ok&&u.dataset.players.length===502&&L.teams[0].playerIds[0]===0&&u.log.changed.includes(0))});

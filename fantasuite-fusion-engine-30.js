@@ -69,7 +69,7 @@
   function metrics(p, ctx = {}) {
     const n = p.ap !== undefined ? p : normalize(p), rules = ctx.rules || DEFAULT_RULES, strat = COEF.strategies[ctx.strategy || rules.strategy] || COEF.strategies.balanced;
     const flags = [];
-    if (n.status === 'unavailable' || n.status === 'suspended') return { id: n.id, name: n.name, role: n.role, available: false, score: 0, utility: 0, efv: 0, ev: 0, vp: 0, confidence: fin(n.dq, 0.3), floor: 0, ceiling: 0, contributions: [], flags: ['indisponibile'], norm: n };
+    if (n.status === 'unavailable' || n.status === 'suspended') return { id: n.id, name: n.name, role: n.role, available: false, score: 0, utility: 0, efv: 0, ev: 0, vp: 0, confidence: fin(n.dq, 0.3), floor: 0, ceiling: 0, contributions: [], contributionsSum: 0, indexBreakdown: [], indexSum: 0, usual: null, surpriseDelta: null, flags: ['indisponibile'], norm: n };
     if (n.ev === null || n.efvSrc === null) flags.push('voto atteso mancante');
     const evSrc = n.ev ?? (n.role === 'P' ? 5.9 : 6.0), efvSrc = n.efvSrc ?? evSrc;
     const m = n.minCond === null ? 90 : n.minCond; if (n.minCond === null) flags.push('minuti mancanti');
@@ -98,9 +98,12 @@
     if (n.st !== null && n.st < 0.45) flags.push('rischio panchina/subentro');
     if (n.inj !== null && n.inj >= 0.25) flags.push('rischio infortunio alto');
     const r = x => Math.round(x * 1e4) / 1e4;
+    // Scomposizione dell'indice: ogni componente pesato per vp + sostituto + adeguamento strategia = indice (somma verificata)
+    const indexBreakdown = contributions.map(c => ({ k: c.k, v: fin(n.vp * c.v) })).concat([{ k: 'sostituto se senza voto', v: fin((1 - n.vp) * nv) }, { k: 'adeguamento strategia', v: fin(score - utility) }]);
+    const usual = (n.obs !== null && n.obs > 0) ? n.obs : null; // fantamedia abituale (dato osservato)
     return { id: n.id, name: n.name, club: n.club, role: n.role, available: true, score: fin(score), utility: fin(utility), efv: fin(efv), ev: evSrc, vp: n.vp, st: n.st, minutesCond: n.minCond, minutesUncond: n.minUncond,
       floor: fin(floorV), ceiling: fin(ceilV), sd: fin(sdV), volatility: fin(sdUp), confidence: conf, contributions, contributionsSum: r(contributions.reduce((a, c) => a + c.v, 0)),
-      bonusPotential: fin(goal0 + ass0), flags, fixture: ctx.fixture || null, norm: n };
+      bonusPotential: fin(goal0 + ass0), indexBreakdown, indexSum: fin(indexBreakdown.reduce((x, c) => x + c.v, 0)), usual, surpriseDelta: usual === null ? null : fin(efv - usual), strategyUsed: ctx.strategy || rules.strategy, flags, fixture: ctx.fixture || null, norm: n };
   }
   const this_pts = r => ({ goal: r.goalPts ?? 3, assist: r.assistPts ?? 1 });
   function explain(mt) { const pos = mt.contributions.filter(c => c.v > 0.005 && c.k !== 'voto base').map(c => c.k), neg = mt.contributions.filter(c => c.v < -0.005).map(c => c.k); return { positive: pos, negative: neg.concat(mt.flags), sumOk: Math.abs(mt.contributionsSum - mt.efv) < 1e-3 }; }
